@@ -12,6 +12,10 @@ export interface Face {
   normal: [number, number, number];
 }
 
+const getShrinkFactor = (): number => {
+  return 0.002;
+  // return Math.random() * 0.01 + 0.02; // 0.02 ~ 0.08 사이의 랜덤값
+};
 export const INDICES_FOR_RECT = [0, 1, 2, 2, 3, 0];
 
 export function addMidpoints(vertices: Vertex[]): Vertex[] {
@@ -59,31 +63,66 @@ export function createSubFaces(vertices: Vertex[], normal: [number, number, numb
   const subFaces: Face[] = [
     // 하위 면 1: v0-v01-center-v30
     {
-      vertices: [vertices[0], vertices[4], vertices[8], vertices[7]], // v0, v01, center, v30
+      vertices: shrinkSubFace([vertices[0], vertices[4], vertices[8], vertices[7]], getShrinkFactor(), vertices[0].pos), // v0, v01, center, v30
       indices: INDICES_FOR_RECT, // v0-v01-center, center-v30-v0
       normal,
     },
     // 하위 면 2: v01-v1-v12-center
     {
-      vertices: [vertices[4], vertices[1], vertices[5], vertices[8]], // v01, v1, v12, center
+      vertices: shrinkSubFace([vertices[4], vertices[1], vertices[5], vertices[8]], getShrinkFactor(), vertices[1].pos), // v01, v1, v12, center
       indices: INDICES_FOR_RECT, // v01-v1-v12, v12-center-v01
       normal,
     },
     // 하위 면 3: center-v12-v2-v23
     {
-      vertices: [vertices[8], vertices[5], vertices[2], vertices[6]], // center, v12, v2, v23
+      vertices: shrinkSubFace([vertices[8], vertices[5], vertices[2], vertices[6]], getShrinkFactor(), vertices[2].pos), // center, v12, v2, v23
       indices: INDICES_FOR_RECT, // center-v12-v2, v2-v23-center
       normal,
     },
     // 하위 면 4: v30-center-v23-v3
     {
-      vertices: [vertices[7], vertices[8], vertices[6], vertices[3]], // v30, center, v23, v3
+      vertices: shrinkSubFace([vertices[7], vertices[8], vertices[6], vertices[3]], getShrinkFactor(), vertices[3].pos), // v30, center, v23, v3
       indices: INDICES_FOR_RECT, // v30-center-v23, v23-v3-v30
       normal,
     },
   ];
 
   return subFaces;
+}
+
+function shrinkSubFace(
+  vertices: Vertex[],
+  shrinkAmount: number,
+  notShrinkPosition: [number, number, number]
+): Vertex[] {
+  // 하위 면의 중심점 계산
+  const center = [
+    (vertices[0].pos[0] + vertices[1].pos[0] + vertices[2].pos[0] + vertices[3].pos[0]) / 4,
+    (vertices[0].pos[1] + vertices[1].pos[1] + vertices[2].pos[1] + vertices[3].pos[1]) / 4,
+    (vertices[0].pos[2] + vertices[1].pos[2] + vertices[2].pos[2] + vertices[3].pos[2]) / 4,
+  ];
+
+  return vertices.map(vertex => {
+    // 각 축별로 이동할 방향과 거리 계산
+    const dirX = center[0] - vertex.pos[0];
+    const dirY = center[1] - vertex.pos[1];
+    const dirZ = center[2] - vertex.pos[2];
+
+    // 각 축별로 이동 여부 결정 (notShrinkPosition과 다른 축만 이동)
+    const shouldMoveX = vertex.pos[0] !== notShrinkPosition[0];
+    const shouldMoveY = vertex.pos[1] !== notShrinkPosition[1];
+    const shouldMoveZ = vertex.pos[2] !== notShrinkPosition[2];
+
+    // 각 축별 이동 거리 계산 (절대값)
+    const moveX = shouldMoveX ? Math.sign(dirX) * Math.min(Math.abs(dirX), shrinkAmount) : 0;
+    const moveY = shouldMoveY ? Math.sign(dirY) * Math.min(Math.abs(dirY), shrinkAmount) : 0;
+    const moveZ = shouldMoveZ ? Math.sign(dirZ) * Math.min(Math.abs(dirZ), shrinkAmount) : 0;
+
+    return {
+      ...vertex,
+      pos: [vertex.pos[0] + moveX, vertex.pos[1] + moveY, vertex.pos[2] + moveZ],
+    };
+  });
 }
 
 export function subdivideFace(face: Face): Face[] {
