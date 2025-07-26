@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/Addons.js";
+import { EXRLoader, OrbitControls, RGBELoader } from "three/examples/jsm/Addons.js";
 import setEnv from "./set-env";
 import "./style.css";
 import { CustomCubeFactory } from "./subdividable-cube";
@@ -18,6 +18,7 @@ class App {
   private subdivisionLevel = 0;
   private isSubdividing = false;
   private dragPathVisualizer: DragPathVisualizer;
+  private rockMaterial?: THREE.MeshStandardMaterial;
 
   constructor() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -54,21 +55,36 @@ class App {
 
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
-  private setupModel() {
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      // wireframe: true,
-      // wireframeLinewidth: 5,
-      side: THREE.DoubleSide,
-    });
-    this.customCubeFactory = new CustomCubeFactory();
-    this.cube = new THREE.Mesh(this.customCubeFactory.getGeometry(), material);
+  private async setupModel() {
+    try {
+      const loader = new THREE.TextureLoader();
+      const exrLoader = new EXRLoader();
+      const rockTextureColorMap = await loader.loadAsync("textures/rock_face_03_diff_1k.jpg");
+      // const rockTextureNormalMap = await exrLoader.loadAsync("textures/rock_face_03_nor_gl_1k.exr");
+      // const rockTextureRoughnessMap = await exrLoader.loadAsync("textures/rock_face_03_rough_1k.exr");
+      // const rockTextureDisplacementMap = await loader.loadAsync("textures/rock_face_03_disp_1k.png");
 
-    this.scene.add(this.cube);
+      this.rockMaterial = new THREE.MeshStandardMaterial({
+        // color: 0xffffff,
+        // wireframe: true,
+        // wireframeLinewidth: 5,
+        side: THREE.DoubleSide,
+        map: rockTextureColorMap,
+        // normalMap: rockTextureNormalMap,
+        // roughnessMap: rockTextureRoughnessMap,
+        // displacementMap: rockTextureDisplacementMap,
+      });
+      this.customCubeFactory = new CustomCubeFactory();
+      this.cube = new THREE.Mesh(this.customCubeFactory.getGeometry(), this.rockMaterial);
 
-    // AxisHelper 추가 - X축(빨강), Y축(초록), Z축(파랑)
-    const axesHelper = new THREE.AxesHelper(2);
-    this.scene.add(axesHelper);
+      this.scene.add(this.cube);
+
+      // AxisHelper 추가 - X축(빨강), Y축(초록), Z축(파랑)
+      const axesHelper = new THREE.AxesHelper(2);
+      this.scene.add(axesHelper);
+    } catch (error) {
+      console.error(error);
+    }
   }
   private async setupLight() {
     await setEnv(this.scene, this.renderer);
@@ -90,8 +106,6 @@ class App {
     this.renderer.setSize(width, height);
   }
   private update(time: number) {
-    // const damping = this.subdivisionTimer.isSlashMode() ? 0.0001 : 0.0005;
-    // time *= damping;
     if (!this.subdivisionTimer.isSlashMode() && this.subdivisionLevel > 0) {
       if (!this.isSubdividing) {
         this.isSubdividing = true;
@@ -104,7 +118,9 @@ class App {
     }
   }
 
-  private handleDragComplete(dragCount: number) {}
+  private handleDragComplete(dragCount: number) {
+    console.log(`${dragCount}격!`);
+  }
 
   private performSubdivision() {
     this.customCubeFactory?.subdivideAllFaces();
@@ -122,6 +138,7 @@ class App {
     console.log("시간 종료! 최종 분할 레벨:", this.subdivisionLevel);
     this.dragDetector.resetCount();
     this.dragPathVisualizer.end();
+    this.scene.backgroundIntensity = 1;
   }
 
   private updateTimer(timeLeft: number) {
@@ -147,6 +164,7 @@ class App {
         this.cube.geometry = newGeometry;
       }
       console.log("3초간 참격 상태 시작!");
+      this.scene.backgroundIntensity = 0.2;
     });
 
     // 마우스 이벤트 추가
