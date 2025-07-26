@@ -135,75 +135,76 @@ export function subdivideFace(face: Face): Face[] {
   return subFaces;
 }
 
+const initialFaces: Face[] = [
+  {
+    // +x side (왼쪽아래 → 왼쪽위 → 오른쪽위 → 오른쪽아래)
+    vertices: [
+      { pos: [1, -1, -1], norm: [1, 0, 0], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [1, 1, -1], norm: [1, 0, 0], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [1, 1, 1], norm: [1, 0, 0], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [1, -1, 1], norm: [1, 0, 0], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT, // v0-v1-v2, v2-v3-v0
+    normal: [1, 0, 0],
+  },
+  {
+    // -x side
+    vertices: [
+      { pos: [-1, -1, -1], norm: [-1, 0, 0], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [-1, 1, -1], norm: [-1, 0, 0], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [-1, 1, 1], norm: [-1, 0, 0], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [-1, -1, 1], norm: [-1, 0, 0], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT,
+    normal: [-1, 0, 0],
+  },
+  {
+    // +y side
+    vertices: [
+      { pos: [-1, 1, -1], norm: [0, 1, 0], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [-1, 1, 1], norm: [0, 1, 0], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [1, 1, 1], norm: [0, 1, 0], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [1, 1, -1], norm: [0, 1, 0], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT,
+    normal: [0, 1, 0],
+  },
+  {
+    // -y side
+    vertices: [
+      { pos: [-1, -1, -1], norm: [0, -1, 0], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [-1, -1, 1], norm: [0, -1, 0], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [1, -1, 1], norm: [0, -1, 0], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [1, -1, -1], norm: [0, -1, 0], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT,
+    normal: [0, -1, 0],
+  },
+  {
+    // +z side
+    vertices: [
+      { pos: [-1, -1, 1], norm: [0, 0, 1], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [-1, 1, 1], norm: [0, 0, 1], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [1, 1, 1], norm: [0, 0, 1], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [1, -1, 1], norm: [0, 0, 1], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT,
+    normal: [0, 0, 1],
+  },
+  {
+    // -z side
+    vertices: [
+      { pos: [-1, -1, -1], norm: [0, 0, -1], uv: [0, 0] }, // v0: 왼쪽아래
+      { pos: [-1, 1, -1], norm: [0, 0, -1], uv: [0, 1] }, // v1: 왼쪽위
+      { pos: [1, 1, -1], norm: [0, 0, -1], uv: [1, 1] }, // v2: 오른쪽위
+      { pos: [1, -1, -1], norm: [0, 0, -1], uv: [1, 0] }, // v3: 오른쪽아래
+    ],
+    indices: INDICES_FOR_RECT,
+    normal: [0, 0, -1],
+  },
+];
 export class CustomCubeFactory {
-  private faces: Face[] = [
-    {
-      // +x side (왼쪽아래 → 왼쪽위 → 오른쪽위 → 오른쪽아래)
-      vertices: [
-        { pos: [1, -1, -1], norm: [1, 0, 0], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [1, 1, -1], norm: [1, 0, 0], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [1, 1, 1], norm: [1, 0, 0], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [1, -1, 1], norm: [1, 0, 0], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT, // v0-v1-v2, v2-v3-v0
-      normal: [1, 0, 0],
-    },
-    {
-      // -x side
-      vertices: [
-        { pos: [-1, -1, -1], norm: [-1, 0, 0], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [-1, 1, -1], norm: [-1, 0, 0], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [-1, 1, 1], norm: [-1, 0, 0], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [-1, -1, 1], norm: [-1, 0, 0], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT,
-      normal: [-1, 0, 0],
-    },
-    {
-      // +y side
-      vertices: [
-        { pos: [-1, 1, -1], norm: [0, 1, 0], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [-1, 1, 1], norm: [0, 1, 0], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [1, 1, 1], norm: [0, 1, 0], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [1, 1, -1], norm: [0, 1, 0], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT,
-      normal: [0, 1, 0],
-    },
-    {
-      // -y side
-      vertices: [
-        { pos: [-1, -1, -1], norm: [0, -1, 0], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [-1, -1, 1], norm: [0, -1, 0], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [1, -1, 1], norm: [0, -1, 0], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [1, -1, -1], norm: [0, -1, 0], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT,
-      normal: [0, -1, 0],
-    },
-    {
-      // +z side
-      vertices: [
-        { pos: [-1, -1, 1], norm: [0, 0, 1], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [-1, 1, 1], norm: [0, 0, 1], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [1, 1, 1], norm: [0, 0, 1], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [1, -1, 1], norm: [0, 0, 1], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT,
-      normal: [0, 0, 1],
-    },
-    {
-      // -z side
-      vertices: [
-        { pos: [-1, -1, -1], norm: [0, 0, -1], uv: [0, 0] }, // v0: 왼쪽아래
-        { pos: [-1, 1, -1], norm: [0, 0, -1], uv: [0, 1] }, // v1: 왼쪽위
-        { pos: [1, 1, -1], norm: [0, 0, -1], uv: [1, 1] }, // v2: 오른쪽위
-        { pos: [1, -1, -1], norm: [0, 0, -1], uv: [1, 0] }, // v3: 오른쪽아래
-      ],
-      indices: INDICES_FOR_RECT,
-      normal: [0, 0, -1],
-    },
-  ];
+  private faces: Face[] = initialFaces;
 
   private geometry?: THREE.BufferGeometry;
 
@@ -261,5 +262,10 @@ export class CustomCubeFactory {
     this.geometry.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
     this.geometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvs), 2));
     this.geometry.setIndex(indices);
+  }
+
+  resetFaces() {
+    this.faces = initialFaces;
+    this.rebuildGeometry();
   }
 }
