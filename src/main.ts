@@ -30,12 +30,14 @@ class App {
     const height = this.domApp.clientHeight;
     this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100);
     this.camera.position.z = 5;
+    this.camera.position.y = 3;
+    this.camera.position.x = 3;
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
   private setupModel() {
     const material = new THREE.MeshStandardMaterial({
-      color: 0x44aa88,
+      color: 0xffffff,
       wireframe: true,
       side: THREE.DoubleSide,
       wireframeLinewidth: 5,
