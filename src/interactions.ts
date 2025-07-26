@@ -149,7 +149,7 @@ export class SubdivisionTimer {
 export class DragPathVisualizer {
   private pathPoints: { x: number; y: number }[] = [];
   private isDrawing = false;
-  private pathMesh?: Line2;
+  private pathMeshes: Line2[] = []; // 여러 개의 mesh 관리
   private scene: THREE.Scene;
   private camera: THREE.Camera;
 
@@ -167,12 +167,12 @@ export class DragPathVisualizer {
   addPoint(x: number, y: number) {
     if (!this.isDrawing) return;
     this.pathPoints.push({ x, y });
-    this.updatePathMesh();
+    this.updateCurrentPathMesh();
   }
 
   end() {
     this.isDrawing = false;
-    this.fadeOutPath();
+    this.fadeOutCurrentPath();
   }
 
   private createPathMesh() {
@@ -186,6 +186,7 @@ export class DragPathVisualizer {
 
       return vector;
     });
+
     // LineGeometry 생성
     const geometry = new LineGeometry();
     const positions = new Float32Array(points.length * 3);
@@ -201,36 +202,22 @@ export class DragPathVisualizer {
     // LineMaterial 생성
     const material = new LineMaterial({
       color: getRandomColor(),
-      linewidth: 5, // 이제 실제로 두꺼운 선이 그려집니다
+      linewidth: 5,
       transparent: true,
       opacity: 0.8,
       resolution: new THREE.Vector2(window.innerWidth, window.innerHeight),
     });
 
-    this.pathMesh = new Line2(geometry, material);
-
-    this.scene.add(this.pathMesh);
+    const pathMesh = new Line2(geometry, material);
+    this.pathMeshes.push(pathMesh); // 배열에 추가
+    this.scene.add(pathMesh);
   }
 
-  // 페이드 아웃 효과
-  private fadeOutPath() {
-    if (!this.pathMesh) return;
+  // 현재 드래그 중인 mesh만 업데이트
+  private updateCurrentPathMesh() {
+    if (this.pathMeshes.length === 0) return;
 
-    const material = this.pathMesh.material as LineMaterial;
-    const fadeOut = () => {
-      material.opacity -= 0.05;
-      if (material.opacity <= 0) {
-        this.clearPath();
-      } else {
-        requestAnimationFrame(fadeOut);
-      }
-    };
-    fadeOut();
-  }
-
-  private updatePathMesh() {
-    if (!this.pathMesh) return;
-
+    const currentMesh = this.pathMeshes[this.pathMeshes.length - 1];
     const points = this.pathPoints.map(point => {
       const vector = new THREE.Vector3();
       vector.setFromScreenPosition(point.x, point.y, this.camera);
@@ -245,20 +232,57 @@ export class DragPathVisualizer {
       positions[index * 3 + 2] = point.z;
     });
     geometry.setPositions(positions);
-    this.pathMesh.geometry.dispose();
-    this.pathMesh.geometry = geometry as LineGeometry;
+
+    currentMesh.geometry.dispose();
+    currentMesh.geometry = geometry as LineGeometry;
   }
 
-  private clearPath() {
-    if (this.pathMesh) {
-      this.scene.remove(this.pathMesh);
-      this.pathMesh.geometry.dispose();
-      if (Array.isArray(this.pathMesh.material)) {
-        this.pathMesh.material.forEach(material => material.dispose());
+  // 현재 드래그 중인 mesh만 페이드 아웃
+  private fadeOutCurrentPath() {
+    if (this.pathMeshes.length === 0) return;
+
+    const currentMesh = this.pathMeshes[this.pathMeshes.length - 1];
+    const material = currentMesh.material as LineMaterial;
+
+    const fadeOut = () => {
+      material.opacity -= 0.05;
+      if (material.opacity <= 0) {
+        this.removeMesh(currentMesh);
       } else {
-        this.pathMesh.material.dispose();
+        requestAnimationFrame(fadeOut);
       }
-      this.pathMesh = undefined;
+    };
+    fadeOut();
+  }
+
+  // 특정 mesh 제거
+  private removeMesh(mesh: Line2) {
+    this.scene.remove(mesh);
+    mesh.geometry.dispose();
+    if (Array.isArray(mesh.material)) {
+      mesh.material.forEach(material => material.dispose());
+    } else {
+      mesh.material.dispose();
     }
+
+    // 배열에서 제거
+    const index = this.pathMeshes.indexOf(mesh);
+    if (index > -1) {
+      this.pathMeshes.splice(index, 1);
+    }
+  }
+
+  // 모든 mesh 정리
+  clearAllPaths() {
+    this.pathMeshes.forEach(mesh => this.removeMesh(mesh));
+    this.pathMeshes = [];
+  }
+
+  // resolution 업데이트 (윈도우 리사이즈 시)
+  updateResolution() {
+    this.pathMeshes.forEach(mesh => {
+      const material = mesh.material as LineMaterial;
+      material.resolution.set(window.innerWidth, window.innerHeight);
+    });
   }
 }

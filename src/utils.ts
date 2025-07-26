@@ -1,3 +1,7 @@
 export const getRandomColor = () => {
-  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+  const getHex = () =>
+    Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${getHex()}${getHex()}${getHex()}`;
 };
