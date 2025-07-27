@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { EXRLoader, OrbitControls, RGBELoader } from "three/examples/jsm/Addons.js";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 import setEnv from "./set-env";
 import "./style.css";
 import { CustomCubeFactory } from "./subdividable-cube";
@@ -58,7 +58,6 @@ class App {
   private async setupModel() {
     try {
       const loader = new THREE.TextureLoader();
-      const exrLoader = new EXRLoader();
       const rockTextureColorMap = await loader.loadAsync("textures/rock_face_03_diff_1k.jpg");
       // const rockTextureNormalMap = await exrLoader.loadAsync("textures/rock_face_03_nor_gl_1k.exr");
       // const rockTextureRoughnessMap = await exrLoader.loadAsync("textures/rock_face_03_rough_1k.exr");
@@ -105,7 +104,7 @@ class App {
     }
     this.renderer.setSize(width, height);
   }
-  private update(time: number) {
+  private update(_time: number) {
     if (!this.subdivisionTimer.isSlashMode() && this.subdivisionLevel > 0) {
       if (!this.isSubdividing) {
         this.isSubdividing = true;
