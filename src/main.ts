@@ -53,7 +53,7 @@ class App {
     this.camera.position.x = 3;
     this.camera.lookAt(0, 0, 0);
 
-    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
   }
   private async setupModel() {
     try {
@@ -80,8 +80,8 @@ class App {
       this.scene.add(this.cube);
 
       // AxisHelper 추가 - X축(빨강), Y축(초록), Z축(파랑)
-      const axesHelper = new THREE.AxesHelper(2);
-      this.scene.add(axesHelper);
+      // const axesHelper = new THREE.AxesHelper(2);
+      // this.scene.add(axesHelper);
     } catch (error) {
       console.error(error);
     }
@@ -139,6 +139,9 @@ class App {
     this.dragDetector.resetCount();
     this.dragPathVisualizer.end();
     this.scene.backgroundIntensity = 1;
+    if (this.controls) {
+      this.controls.enabled = true;
+    }
   }
 
   private updateTimer(timeLeft: number) {
@@ -156,6 +159,9 @@ class App {
     this.renderer.setAnimationLoop(this.render.bind(this));
     const subdivideButton = document.getElementById("subdivide")!;
     subdivideButton.addEventListener("click", () => {
+      if (this.controls) {
+        this.controls.enabled = false;
+      }
       this.customCubeFactory?.resetFaces();
       this.subdivisionTimer.start();
       const newGeometry = this.customCubeFactory?.getGeometry();

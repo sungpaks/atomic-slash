@@ -5,3 +5,7 @@ export const getRandomColor = () => {
       .padStart(2, "0");
   return `#${getHex()}${getHex()}${getHex()}`;
 };
+
+export const getRandomFloat = (min: number, max: number) => {
+  return Math.random() * (max - min) + min;
+};

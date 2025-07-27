@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { getRandomFloat } from "./utils";
 
 export interface Vertex {
   pos: [number, number, number];
@@ -28,8 +29,66 @@ export function addMidpoints(vertices: Vertex[]): Vertex[] {
   const v23 = createMidpoint(v2, v3); // 2-3 중점
   const v30 = createMidpoint(v3, v0); // 3-0 중점
 
-  // 중심점 (4개 정점의 평균)
-  const center = createCenter(v0, v1, v2, v3);
+  // 법선벡터 방향 인덱스 구하기 (가장 큰 절대값을 가진 축이 normal 방향)
+  const normal = v01.norm;
+  const normalAxis =
+    Math.abs(normal[0]) > Math.abs(normal[1])
+      ? Math.abs(normal[0]) > Math.abs(normal[2])
+        ? 0
+        : 2
+      : Math.abs(normal[1]) > Math.abs(normal[2])
+        ? 1
+        : 2;
+
+  const edgeLength = Math.sqrt(
+    Math.pow(v0.pos[0] - v1.pos[0], 2) + Math.pow(v0.pos[1] - v1.pos[1], 2) + Math.pow(v0.pos[2] - v1.pos[2], 2)
+  );
+  const randomFactor = 0.01 * edgeLength;
+
+  [v01, v12, v23, v30].forEach(v => {
+    v.pos.forEach((p, i) => {
+      if (i === normalAxis || p >= 1 || p <= -1) {
+        // 법선 방향은 랜덤팩터 적용하지 않음
+        // TODO: 가장 바깥쪽은 랜덤팩터를 적용하지 않는데, 하드코딩되어있는 값(1)을 개선하기.
+        v.pos[i] = p;
+      } else {
+        v.pos[i] = p + getRandomFloat(-randomFactor, randomFactor);
+      }
+    });
+  });
+
+  // 네 모서리 중점(v01, v12, v23, v30)을 잇는 두 대각선의 교차점 계산
+  // 대각선1: v01 <-> v23, 대각선2: v12 <-> v30
+  // 교차점은 두 대각선의 중점의 평균으로 근사 (평면 사각형이므로)
+  function averagePos(a: Vertex, b: Vertex) {
+    return [(a.pos[0] + b.pos[0]) / 2, (a.pos[1] + b.pos[1]) / 2, (a.pos[2] + b.pos[2]) / 2] as [
+      number,
+      number,
+      number,
+    ];
+  }
+  const diag1Mid = averagePos(v01, v23);
+  const diag2Mid = averagePos(v12, v30);
+  const centerPos: [number, number, number] = [
+    (diag1Mid[0] + diag2Mid[0]) / 2,
+    (diag1Mid[1] + diag2Mid[1]) / 2,
+    (diag1Mid[2] + diag2Mid[2]) / 2,
+  ];
+
+  // uv도 같은 방식으로 평균
+  function averageUv(a: Vertex, b: Vertex) {
+    return [(a.uv[0] + b.uv[0]) / 2, (a.uv[1] + b.uv[1]) / 2] as [number, number];
+  }
+  const diag1MidUv = averageUv(v01, v23);
+  const diag2MidUv = averageUv(v12, v30);
+  const centerUv: [number, number] = [(diag1MidUv[0] + diag2MidUv[0]) / 2, (diag1MidUv[1] + diag2MidUv[1]) / 2];
+
+  // 중심점 생성 (법선은 기존과 동일)
+  const center: Vertex = {
+    pos: centerPos,
+    norm: v01.norm,
+    uv: centerUv,
+  };
 
   // 순서: 기존 4개 + 모서리 중점 4개 + 중심점 1개 = 총 9개
   return [v0, v1, v2, v3, v01, v12, v23, v30, center];
