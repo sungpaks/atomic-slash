@@ -193,6 +193,27 @@ class App {
         this.dragPathVisualizer.end();
       }
     });
+
+    this.renderer.domElement.addEventListener("touchstart", e => {
+      if (this.subdivisionTimer.isSlashMode()) {
+        this.dragDetector.start(e.touches[0].clientX, e.touches[0].clientY);
+        this.dragPathVisualizer.start(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    });
+
+    this.renderer.domElement.addEventListener("touchmove", e => {
+      if (this.subdivisionTimer.isSlashMode()) {
+        this.dragDetector.move(e.touches[0].clientX, e.touches[0].clientY);
+        this.dragPathVisualizer.addPoint(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    });
+
+    this.renderer.domElement.addEventListener("touchend", () => {
+      if (this.subdivisionTimer.isSlashMode()) {
+        this.dragDetector.end();
+        this.dragPathVisualizer.end();
+      }
+    });
   }
 }
 
